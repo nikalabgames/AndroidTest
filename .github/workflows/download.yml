@@ -1,0 +1,55 @@
+name: YouTube Downloader
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Ссылка на видео'
+        required: true
+      resolution:
+        description: 'Разрешение'
+        required: true
+        type: choice
+        default: '1080'
+        options: ['720', '1080', '1440']
+      trim_enabled:
+        description: 'Обрезать видео?'
+        type: boolean
+        default: false
+      start_time:
+        description: 'Начало (00:00:00)'
+        default: '00:00:00'
+      end_time:
+        description: 'Конец (00:00:10)'
+        default: '00:00:10'
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: [actions/checkout](https://github.com)@v4
+      
+      - name: Setup yt-dlp
+        uses: [AnimMouse/setup-yt-dlp](https://github.com)@v3
+        with:
+          with-ffmpeg: true
+
+      - name: Run Download
+        run: |
+          TRIM=""
+          if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
+            TRIM="--download-sections '*${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}'"
+          fi
+          
+          yt-dlp \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
+            $TRIM \
+            --merge-output-format mp4 \
+            -o "video.%(ext)s" \
+            "${{ github.event.inputs.video_url }}"
+
+      - name: Upload
+        uses: [actions/upload-artifact](https://github.com)@v4
+        with:
+          name: youtube-video-${{ github.event.inputs.resolution }}p
+          path: video.mp4
+          retention-days: 1
