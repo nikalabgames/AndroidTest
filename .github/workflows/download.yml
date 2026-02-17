@@ -137,11 +137,11 @@ jobs:
             
             # 1. Получаем битрейт видео через ffprobe
             # В некоторых MP4 битрейт может быть не в streams, а в format (bit_rate)
-            BITRATE=$(ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+            # 1. Используем ffprobe.exe (явно для Windows)
+            BITRATE=$(ffprobe.exe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
             
-            # Если в потоке пусто, пробуем получить из общего контейнера
             if [[ -z "$BITRATE" || "$BITRATE" == "N/A" ]]; then
-              BITRATE=$(ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+              BITRATE=$(ffprobe.exe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
             fi
 
             # 2. Логика определения HLS_TIME
