@@ -121,7 +121,7 @@ jobs:
             --write-thumbnail \
             --convert-thumbnails jpg \
             --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
-            -f "bestvideo[height<=${{ github.event.inputs.resolution }}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best[height<=${{ github.event.inputs.resolution }}][vcodec^=avc1]" \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=${{ github.event.inputs.resolution }}]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"           
@@ -141,7 +141,8 @@ jobs:
             # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
             # Используем -c copy для сохранения оригинального качества и битрейта
             ffmpeg -i video.mp4 \
-              -c copy \
+              -c:v libx264 -preset superfast -crf 23 \
+              -c:a aac -b:a 64k \
               -map 0 \
               -start_number 0 \
               -hls_list_size 0 \
