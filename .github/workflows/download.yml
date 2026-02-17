@@ -130,7 +130,6 @@ jobs:
             -c copy \
             -map 0 \
             -start_number 0 \
-            -hls_time 30 \
             -hls_list_size 0 \
             -hls_segment_size $MAX_BYTES \
             -hls_segment_type mpegts \
