@@ -118,26 +118,13 @@ jobs:
             "${{ github.event.inputs.video_url }}"
 
           echo "--- START ALL METADATA (JSON) ---"
-          # Выводит полный JSON со всеми полями видео
-          yt-dlp $COOKIE_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=android_vr,tv" \
-            --print "%()j" \
-            "${{ github.event.inputs.video_url }}"
+          yt-dlp -F "${{ github.event.inputs.video_url }}"
           echo "--- END ALL METADATA ---"
-
-           # 2. Извлекаем реальную проекцию из JSON YouTube
-           # Мы ищем поле 'projection_type'. Если его нет, ставим 'equi'
-           REAL_PROJECTION=$(yt-dlp --print "projection_type" "${{ github.event.inputs.video_url }}" || echo "equi")
-           if [ -z "$REAL_PROJECTION" ]; then
-            REAL_PROJECTION="equi"
-           fi
           
            VIDEO_TITLE=$(yt-dlp --get-title "${{ github.event.inputs.video_url }}")
 
            # 3. Создаем файл метаданных
            echo "Title: $VIDEO_TITLE" > metadata.txt
-           echo "Projection: $REAL_PROJECTION" >> metadata.txt
            echo "Resolution: ${{ github.event.inputs.resolution }}p" >> metadata.txt
            echo "URL: ${{ github.event.inputs.video_url }}" >> metadata.txt
 
