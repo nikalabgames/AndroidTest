@@ -81,7 +81,7 @@ jobs:
           echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
           yt-dlp $COOKIE_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=tv,web" \
+            --extractor-args "youtube:player_client=android_vr,tv" \
             -F "${{ github.event.inputs.video_url }}"
           echo "----------------------------------------"
 
@@ -108,8 +108,8 @@ jobs:
             $TRIM_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player_client=android_vr,tv;player_skip=configs" \
-            --allow-unplayable-formats \
             --no-cache-dir \
+            --fixup force \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
