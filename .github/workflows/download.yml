@@ -140,9 +140,6 @@ jobs:
             echo ">>> STARTING HLS SPLIT (fMP4 for AV1 Support) <<<"
             # 1. Создаем папку (явно)
             mkdir -p output
-
-          ffprobe
-          echo "sdfdfsdfsd"
             
             # 1. Получаем битрейт видео через ffprobe
             # В некоторых MP4 битрейт может быть не в streams, а в format (bit_rate)
@@ -150,7 +147,7 @@ jobs:
            BITRATE=$(ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2 | tr -d '\r')
             
             if [[ -z "$BITRATE" || "$BITRATE" == "N/A" ]]; then
-              BITRATE=$(ffprobe.exe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+              BITRATE=$(ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
             fi
 
             # 2. Логика определения HLS_TIME
