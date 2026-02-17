@@ -109,7 +109,7 @@ jobs:
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player_client=android_vr,tv;player_skip=configs" \
             --no-cache-dir \
-            --fixup force \
+            #--fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
             --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
