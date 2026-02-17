@@ -106,7 +106,7 @@ jobs:
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player_client=tv,web;player_skip=configs" \
             --no-cache-dir \
-            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
+            -f 400+140 \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
