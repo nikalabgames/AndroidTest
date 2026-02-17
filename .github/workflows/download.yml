@@ -112,12 +112,13 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
-            --print-to-file "%(vcodec)s" "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json
+            --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}],bestaudio/best[height<=1440]" \
-            -o "part.%(ext)s" \
+            -o "video:videopart" \
+            -o "audio:audiopart" \
             "${{ github.event.inputs.video_url }}"
 
-           ffmpeg -i part.mp4 -i part.webm -c copy -map 0:v:0 -map 1:a:0 video.mp4
+           ffmpeg -i videopart -i audiopart -c copy -map 0:v:0 -map 1:a:0 video.mp4
           
            # 3. Создаем файл метаданных
            cat metadata.json
