@@ -70,6 +70,21 @@ jobs:
           & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos registration new
           & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos connect
 
+      - name: Check Available Formats
+        shell: bash
+        run: |
+          COOKIE_ARG=""
+          if [[ "$USE_COOKIES" == "true" ]]; then
+            COOKIE_ARG="--cookies cookies.txt"
+          fi
+          
+          echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
+          yt-dlp $COOKIE_ARG \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            --extractor-args "youtube:player_client=tv,web" \
+            -F "${{ github.event.inputs.video_url }}"
+          echo "----------------------------------------"
+
       - name: Run Download
         shell: bash
         run: |
@@ -83,17 +98,15 @@ jobs:
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
           
-          # 1. Мы добавляем --allow-unplayable-formats (на случай SABR)
-          # 2. Форсируем использование форматов DASH/HLS, которые YouTube отдает охотнее
-          # 3. Используем расширенный селектор, чтобы точно забрать 1440p+audio
+          # Мы используем клиент 'tv', так как он чаще всего отдает HD без PO Token.
+          # Селектор "bestvideo[height<=?1440]+bestaudio/best" наиболее универсален.
           yt-dlp \
             $COOKIE_ARG \
             $TRIM_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=tv;player_skip=configs" \
+            --extractor-args "youtube:player_client=tv,web;player_skip=configs" \
             --no-cache-dir \
-            --check-formats \
-            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
