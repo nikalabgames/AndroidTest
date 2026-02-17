@@ -108,8 +108,6 @@ jobs:
             --extractor-args "youtube:player_client=tv,web" \
             --list-formats \
             -f 400+140 \
-            --merge-output-format mp4 \
-            -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
 
       - name: Upload
