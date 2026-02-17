@@ -93,7 +93,6 @@ jobs:
             --extractor-args "youtube:player_client=tv;player_skip=configs" \
             --no-cache-dir \
             --check-formats \
-            --allow-unplayable-formats \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
             --merge-output-format mp4 \
             -o "video.mp4" \
