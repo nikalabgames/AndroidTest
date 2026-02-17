@@ -112,7 +112,7 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
-            --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"projection\": \"%(format_note)s\"}" metadata.json \
+            --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
@@ -129,5 +129,5 @@ jobs:
           path: |
             video.mp4
             video.jpg
-            metadata.txt
+            metadata.json
           retention-days: 1
