@@ -135,18 +135,47 @@ jobs:
             # 1. Создаем папку (явно)
             mkdir -p output
             
-            # 2. Считаем байты
-            MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
+            # 1. Получаем битрейт видео через ffprobe
+            # В некоторых MP4 битрейт может быть не в streams, а в format (bit_rate)
+            BITRATE=$(ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+            
+            # Если в потоке пусто, пробуем получить из общего контейнера
+            if [[ -z "$BITRATE" || "$BITRATE" == "N/A" ]]; then
+              BITRATE=$(ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+            fi
+
+            # 2. Логика определения HLS_TIME
+            if [[ -z "$BITRATE" || "$BITRATE" == "N/A" || "$BITRATE" -eq 0 ]]; then
+              echo "⚠️ Не удалось определить битрейт. Используем HLS_TIME=10"
+              HLS_TIME=10
+            else
+              # Считаем через bash (целочисленное деление)
+              # Формула: (Лимит_МБ * 8 * 1024 * 1024 * 0.9) / BITRATE
+              # Для точности в bash сначала умножаем на 90, потом делим на 100
+              LIMIT_MB=${{ github.event.inputs.hls_max_mb }}
+              
+              # Считаем числитель (МБ в биты с запасом 10% на аудио/заголовки)
+              BITS_LIMIT=$(( LIMIT_MB * 8 * 1024 * 1024 ))
+              SAFE_BITS=$(( BITS_LIMIT * 90 / 100 ))
+              
+              HLS_TIME=$(( SAFE_BITS / BITRATE ))
+              
+              # Защита от слишком маленьких или больших значений
+              [[ "$HLS_TIME" -lt 2 ]] && HLS_TIME=2
+              [[ "$HLS_TIME" -gt 60 ]] && HLS_TIME=60
+              
+              echo "✅ Определенный битрейт: $BITRATE bps"
+              echo "✅ Рассчитанное время: $HLS_TIME сек (для лимита $LIMIT_MB MB)"
+            fi
 
             # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
             # Используем -c copy для сохранения оригинального качества и битрейта
             ffmpeg -i video.mp4 \
-              -c:v libx264 -preset superfast -crf 23 \
-              -c:a aac -b:a 64k \
+              -c copy \
               -map 0 \
               -start_number 0 \
               -hls_list_size 0 \
-              -hls_segment_size $MAX_BYTES \
+              -hls_time $HLS_TIME \
               -hls_segment_type mpegts \
               -hls_segment_filename "output/seg_%03d.ts" \
               -f hls output/playlist.m3u8
