@@ -125,9 +125,13 @@ jobs:
           echo ">>> DIRECTORY CONTENT <<<"
           ls -1R
 
-           # Конвертируем MB в байты для ffmpeg
+           # 1. Создаем папку (явно)
+            mkdir -p output
+
+          # 2. Считаем байты
           MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
 
+          # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
           # Используем -c copy для сохранения оригинального качества и битрейта
           ffmpeg -i video.mp4 \
             -c copy \
