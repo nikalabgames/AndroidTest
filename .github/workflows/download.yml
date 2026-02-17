@@ -104,7 +104,7 @@ jobs:
             $COOKIE_ARG \
             $TRIM_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=web,web;player_skip=configs" \
+            --extractor-args "youtube:player_client=tv,web;player_skip=configs" \
             --allow-unplayable-formats \
             --no-cache-dir \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
