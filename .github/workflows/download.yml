@@ -83,8 +83,9 @@ jobs:
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
           
-          # Запуск скачивания через интерфейс WARP (локальный прокси 127.0.0.1:40000 или прямой туннель)
-          # Если WARP в режиме 'connect', он перехватывает весь трафик системы автоматически
+          # Улучшенная формула выбора формата:
+          # "bestvideo[height<=?1440]+bestaudio/best" заставляет искать видео 
+          # нужной высоты и отдельно лучшее аудио.
           yt-dlp \
             $COOKIE_ARG \
             $TRIM_ARG \
