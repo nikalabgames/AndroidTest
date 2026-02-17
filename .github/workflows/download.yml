@@ -176,8 +176,8 @@ jobs:
               -start_number 0 \
               -hls_list_size 0 \
               -hls_time $HLS_TIME \
-              -hls_segment_type mpegts \
-              -hls_segment_filename "output/seg_%03d.ts" \
+              -hls_segment_type fmp4 \
+              -hls_segment_filename "output/seg_%03d.m4s" \
               -f hls output/playlist.m3u8
 
             echo ">>> DIRECTORY CONTENT <<<"
