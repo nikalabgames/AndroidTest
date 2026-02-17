@@ -70,20 +70,20 @@ jobs:
           & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos registration new
           & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos connect
 
-      - name: Check Available Formats
-        shell: bash
-        run: |
-          COOKIE_ARG=""
-          if [[ "$USE_COOKIES" == "true" ]]; then
-            COOKIE_ARG="--cookies cookies.txt"
-          fi
-          
-          echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
-          yt-dlp $COOKIE_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=android_vr,tv" \
-            -F "${{ github.event.inputs.video_url }}"
-          echo "----------------------------------------"
+#      - name: Check Available Formats
+#        shell: bash
+#        run: |
+#          COOKIE_ARG=""
+#          if [[ "$USE_COOKIES" == "true" ]]; then
+#            COOKIE_ARG="--cookies cookies.txt"
+#          fi
+#          
+#          echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
+#          yt-dlp $COOKIE_ARG \
+#            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+#            --extractor-args "youtube:player_client=android_vr,tv" \
+#            -F "${{ github.event.inputs.video_url }}"
+#          echo "----------------------------------------"
 
       - name: Run Download
         shell: bash
