@@ -22,6 +22,10 @@ on:
       end_time:
         description: 'End (00:00:10)'
         default: '00:00:10'
+      hls_split_enabled:
+        description: 'Enable HLS Splitting?'
+        type: boolean
+        default: true
       hls_max_mb:
         description: 'Max HLS segment size (MB)'
         required: true
@@ -125,26 +129,33 @@ jobs:
           echo ">>> DIRECTORY CONTENT <<<"
           ls -1R
 
-           # 1. Создаем папку (явно)
+          # --- HLS SPLIT LOGIC ---
+          if [[ "${{ github.event.inputs.hls_split_enabled }}" == "true" ]]; then
+            echo ">>> STARTING HLS SPLIT (fMP4 for AV1 Support) <<<"
+            # 1. Создаем папку (явно)
             mkdir -p output
+            
+            # 2. Считаем байты
+            MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
 
-          # 2. Считаем байты
-          MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
+            # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
+            # Используем -c copy для сохранения оригинального качества и битрейта
+            ffmpeg -i video.mp4 \
+              -c copy \
+              -map 0 \
+              -start_number 0 \
+              -hls_list_size 0 \
+              -hls_segment_size $MAX_BYTES \
+              -hls_segment_type fmp4 \
+              -hls_segment_filename "output/seg_%03d.m4s" \
+              -f hls output/playlist.m3u8
 
-          # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
-          # Используем -c copy для сохранения оригинального качества и битрейта
-          ffmpeg -i video.mp4 \
-            -c copy \
-            -map 0 \
-            -start_number 0 \
-            -hls_list_size 0 \
-            -hls_segment_size $MAX_BYTES \
-            -hls_segment_type mpegts \
-            -hls_segment_filename "output/seg_%03d.ts" \
-            -f hls output/playlist.m3u8
-
-          echo ">>> DIRECTORY CONTENT <<<"
-          ls -1R
+            echo ">>> DIRECTORY CONTENT <<<"
+            ls -1R
+          else
+            echo ">>> HLS Split disabled, skipping... <<<"
+          fi
+          
           cat metadata.json
 
       - name: Upload Artifacts
