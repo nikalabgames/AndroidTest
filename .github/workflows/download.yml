@@ -97,6 +97,9 @@ jobs:
           if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
+
+          # 1. Принудительно выводим сообщение, чтобы проверить, работают ли логи
+          echo ">>> STARTING DOWNLOAD PROCESS <<<"
           
           # Мы используем клиент 'tv', так как он чаще всего отдает HD без PO Token.
           # Селектор "bestvideo[height<=?1440]+bestaudio/best" наиболее универсален.
