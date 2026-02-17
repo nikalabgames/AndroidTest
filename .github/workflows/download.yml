@@ -74,7 +74,9 @@ jobs:
         shell: bash
         run: |
           COOKIE_ARG=""
-          [ -f cookies.txt ] && COOKIE_ARG="--cookies cookies.txt"
+          if [[ "$USE_COOKIES" == "true" ]]; then
+            COOKIE_ARG="--cookies cookies.txt"
+          fi
           
           echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
           yt-dlp $COOKIE_ARG \
@@ -87,7 +89,9 @@ jobs:
         shell: bash
         run: |
           COOKIE_ARG=""
-          [ -f cookies.txt ] && COOKIE_ARG="--cookies cookies.txt"
+          if [[ "$USE_COOKIES" == "true" ]]; then
+            COOKIE_ARG="--cookies cookies.txt"
+          fi
 
           TRIM_ARG=""
           if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
