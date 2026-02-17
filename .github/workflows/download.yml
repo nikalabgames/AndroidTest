@@ -115,6 +115,8 @@ jobs:
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
+
+            ls -1
           
            # 3. Создаем файл метаданных
            cat metadata.json
