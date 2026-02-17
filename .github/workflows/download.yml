@@ -122,6 +122,9 @@ jobs:
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"           
 
+          echo ">>> DIRECTORY CONTENT <<<"
+          ls -1R
+
            # Конвертируем MB в байты для ffmpeg
           MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
 
