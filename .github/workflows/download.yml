@@ -112,23 +112,15 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
+            --print "Title: %(title)s" \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
-            "${{ github.event.inputs.video_url }}"
-
-          echo "--- START ALL METADATA (JSON) ---"
-          yt-dlp -F "${{ github.event.inputs.video_url }}"
-          echo "--- END ALL METADATA ---"
+            "${{ github.event.inputs.video_url }}" > metadata.txt
           
-           VIDEO_TITLE=$(yt-dlp --get-title "${{ github.event.inputs.video_url }}")
-
            # 3. Создаем файл метаданных
-           echo "Title: $VIDEO_TITLE" > metadata.txt
            echo "Resolution: ${{ github.event.inputs.resolution }}p" >> metadata.txt
            echo "URL: ${{ github.event.inputs.video_url }}" >> metadata.txt
-
-           echo ">>> DONE: Projection is $REAL_PROJECTION <<<"
 
       - name: Upload Artifacts
         if: always()
