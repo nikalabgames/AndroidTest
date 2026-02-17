@@ -1,4 +1,4 @@
-name: YouTube Downloader Windows
+name: YouTube Downloader Ubuntu
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ on:
         description: 'Resolution'
         required: true
         type: choice
-        default: '720'
+        default: '1440'
         options: ['720', '1080', '1440']
       trim_enabled:
         description: 'Enable Trim?'
@@ -28,86 +28,71 @@ on:
 
 jobs:
   download:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Setup yt-dlp
         uses: AnimMouse/setup-yt-dlp@v3
-        with:
-          ffmpeg: true
 
-      - name: Process and Validate Cookies
-        shell: bash
+      - name: Process Cookies
         env:
           RAW_COOKIES: ${{ github.event.inputs.manual_cookies }}
         run: |
           if [[ -n "$RAW_COOKIES" ]]; then
-            # 'tr -d' removes Windows carriage returns that break the cookie file
-            echo "$RAW_COOKIES" | tr -d '\r' > cookies.txt
-            
-            if grep -q "Netscape" cookies.txt && grep -q "youtube.com" cookies.txt; then
-              echo "✅ Cookie file is valid Netscape format."
-              echo "USE_COOKIES=true" >> $GITHUB_ENV
-            else
-              echo "❌ ERROR: Invalid cookie format."
-              exit 1
-            fi
+            echo "$RAW_COOKIES" > cookies.txt
+            echo "USE_COOKIES=true" >> $GITHUB_ENV
           else
-            echo "⚠️ No cookies provided."
             echo "USE_COOKIES=false" >> $GITHUB_ENV
           fi
 
       - name: Install & Start Cloudflare WARP
-        shell: powershell
+        # На Ubuntu установка WARP отличается от Windows
         run: |
-          # Установка через winget (доступно на windows-latest)
-          winget install --id Cloudflare.Warp --silent --accept-package-agreements --accept-source-agreements
-          # Запуск сервиса (может занять время)
-          Start-Process "C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe"
-          Start-Sleep -s 10
-          & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos registration new
-          & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos connect
+          curl -fsSL https://pkg.cloudflareclient.com | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update && sudo apt-get install -y cloudflare-warp
+          # Регистрация и подключение
+          warp-cli --accept-tos registration new
+          warp-cli --accept-tos mode proxy
+          warp-cli --accept-tos connect
+          sleep 5
+          echo "✅ WARP Connected"
 
       - name: Check Available Formats
-        shell: bash
         run: |
           COOKIE_ARG=""
-          if [[ "$USE_COOKIES" == "true" ]]; then
-            COOKIE_ARG="--cookies cookies.txt"
-          fi
+          [[ "$USE_COOKIES" == "true" ]] && COOKIE_ARG="--cookies cookies.txt"
           
-          echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
+          echo "--- DEBUG: AVAILABLE FORMATS ---"
           yt-dlp $COOKIE_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            --user-agent "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player_client=tv,web" \
             -F "${{ github.event.inputs.video_url }}"
-          echo "----------------------------------------"
 
       - name: Run Download
-        shell: bash
         run: |
           COOKIE_ARG=""
-          if [[ "$USE_COOKIES" == "true" ]]; then
-            COOKIE_ARG="--cookies cookies.txt"
-          fi
+          [[ "$USE_COOKIES" == "true" ]] && COOKIE_ARG="--cookies cookies.txt"
 
           TRIM_ARG=""
           if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
           
-          # Мы используем клиент 'tv', так как он чаще всего отдает HD без PO Token.
-          # Селектор "bestvideo[height<=?1440]+bestaudio/best" наиболее универсален.
+          # Мы принудительно используем только те форматы, которые ты видел в логах (vp9/av01)
+          # Клиент 'tv' позволяет обойти PO Token для высоких разрешений
           yt-dlp \
             $COOKIE_ARG \
             $TRIM_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            --user-agent "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
             --extractor-args "youtube:player_client=tv;player_skip=configs" \
             --no-cache-dir \
-            --force-overwrites \
-            -f "bestvideo[height<=1440]+bestaudio/best[height<=1440]" \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
