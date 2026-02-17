@@ -41,11 +41,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Setup FFmpeg & FFprobe
+        uses: AnimMouse/setup-ffmpeg@v1
+        with:
+          # This ensures ffprobe is added to the system PATH
+          register-path: true 
+
       - name: Setup yt-dlp
         uses: AnimMouse/setup-yt-dlp@v3
         with:
-          ffmpeg: true
-
+          # We set this to false because we just installed FFmpeg manually above
+          ffmpeg: false
       - name: Process and Validate Cookies
         shell: bash
         env:
@@ -141,7 +147,7 @@ jobs:
             # 1. Получаем битрейт видео через ffprobe
             # В некоторых MP4 битрейт может быть не в streams, а в format (bit_rate)
             # 1. Используем ffprobe.exe (явно для Windows)
-            BITRATE=$(ffprobe.exe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
+           BITRATE=$(ffprobe -v error -select_streams v:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2 | tr -d '\r')
             
             if [[ -z "$BITRATE" || "$BITRATE" == "N/A" ]]; then
               BITRATE=$(ffprobe.exe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nocontrol_characters=1 video.mp4 | cut -d'=' -f2)
