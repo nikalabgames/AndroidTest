@@ -112,16 +112,14 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
-            --print-to-file title metadata.txt \
+            --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"projection\": \"%(format_note)s\"}" metadata.json \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
           
            # 3. Создаем файл метаданных
-           sed -i '1s/^/Title: /' metadata.txt
-           echo "Resolution: ${{ github.event.inputs.resolution }}p" >> metadata.txt
-           echo "URL: ${{ github.event.inputs.video_url }}" >> metadata.txt
+           cat metadata.json
 
       - name: Upload Artifacts
         if: always()
