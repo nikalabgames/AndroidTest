@@ -81,7 +81,7 @@ jobs:
           echo "--- AVAILABLE FORMATS FOR THIS VIDEO ---"
           yt-dlp $COOKIE_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=web" \
+            --extractor-args "youtube:player_client=tv,web" \
             -F "${{ github.event.inputs.video_url }}"
           echo "----------------------------------------"
 
@@ -97,18 +97,15 @@ jobs:
           if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
-
-          # 1. Принудительно выводим сообщение, чтобы проверить, работают ли логи
-          echo ">>> STARTING DOWNLOAD PROCESS <<<"
           
           # Мы используем клиент 'tv', так как он чаще всего отдает HD без PO Token.
           # Селектор "bestvideo[height<=?1440]+bestaudio/best" наиболее универсален.
-          yt-dlp --verbose \
+          yt-dlp \
             $COOKIE_ARG \
             $TRIM_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=web;player_skip=configs" \
-            --username oauth2 \
+            --extractor-args "youtube:player_client=tv,web;player_skip=configs" \
+            --allow-unplayable-formats \
             --no-cache-dir \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
