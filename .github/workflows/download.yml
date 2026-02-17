@@ -113,9 +113,6 @@ jobs:
             --convert-thumbnails jpg \
             --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}],worstaudio" \
-            --output "video:videopart.%(ext)s" \
-            --output "audio:audiopart.%(ext)s" \
-            --output "thumbnail:thumb.%(ext)s" \
             "${{ github.event.inputs.video_url }}"
 
            #ffmpeg -i videopart* -i audiopart* -c copy -map 0:v:0 -map 1:a:0 video.mp4
