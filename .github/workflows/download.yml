@@ -119,8 +119,11 @@ jobs:
 
            # 2. Извлекаем реальную проекцию из JSON YouTube
            # Мы ищем поле 'projection_type'. Если его нет, ставим 'equi'
+           yt-dlp --print "${{ github.event.inputs.video_url }}"
            REAL_PROJECTION=$(yt-dlp --print "projection_type" "${{ github.event.inputs.video_url }}" || echo "equi")
-           [ -z "$REAL_PROJECTION" ] && REAL_PROJECTION="equi"
+           if [ -z "$REAL_PROJECTION" ]; then
+            REAL_PROJECTION="equi"
+           fi
           
            VIDEO_TITLE=$(yt-dlp --get-title "${{ github.event.inputs.video_url }}")
 
@@ -132,10 +135,13 @@ jobs:
 
            echo ">>> DONE: Projection is $REAL_PROJECTION <<<"
 
-      - name: Upload
+      - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: youtube-video
-          path: video.mp4
+          name: youtube-package
+          path: |
+            video.mp4
+            video.jpg
+            metadata.txt
           retention-days: 1
