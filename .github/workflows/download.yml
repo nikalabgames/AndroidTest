@@ -121,7 +121,7 @@ jobs:
             --write-thumbnail \
             --convert-thumbnails jpg \
             --print-to-file "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
-            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best[height<=${{ github.event.inputs.resolution }}][vcodec^=avc1]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"           
@@ -146,8 +146,8 @@ jobs:
               -start_number 0 \
               -hls_list_size 0 \
               -hls_segment_size $MAX_BYTES \
-              -hls_segment_type fmp4 \
-              -hls_segment_filename "output/seg_%03d.m4s" \
+              -hls_segment_type mpegts \
+              -hls_segment_filename "output/seg_%03d.ts" \
               -f hls output/playlist.m3u8
 
             echo ">>> DIRECTORY CONTENT <<<"
