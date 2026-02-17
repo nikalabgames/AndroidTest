@@ -21,7 +21,7 @@ on:
         default: '00:00:00'
       end_time:
         description: 'End (00:00:10)'
-        default: '00:00:10'
+        default: '00:00:40'
       hls_split_enabled:
         description: 'Enable HLS Splitting?'
         type: boolean
@@ -29,7 +29,7 @@ on:
       hls_max_mb:
         description: 'Max HLS segment size (MB)'
         required: true
-        default: '50'
+        default: '15'
       manual_cookies:
         description: 'Paste Netscape Cookies here'
         required: false
