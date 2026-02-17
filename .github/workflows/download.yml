@@ -83,19 +83,20 @@ jobs:
             TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
           
-          # Улучшенная формула выбора формата:
-          # "bestvideo[height<=?1440]+bestaudio/best" заставляет искать видео 
-          # нужной высоты и отдельно лучшее аудио.
+          # Мы убираем ios/android из приоритетов, так как они требуют PO Token для HD.
+          # Используем 'web' и 'mweb' (mobile web), которые стабильнее отдают 1080p/1440p через прокси.
           yt-dlp \
             $COOKIE_ARG \
             $TRIM_ARG \
-            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" \
-            --extractor-args "youtube:player_client=ios,android;player_skip=webpage,configs" \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            --extractor-args "youtube:player_client=web,mweb;player_skip=configs" \
             --no-cache-dir \
-            -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
+            --check-formats \
+            -f "bestvideo[height<=${{ github.event.inputs.resolution }}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
             --merge-output-format mp4 \
             -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
+
 
       - name: Upload
         if: always()
