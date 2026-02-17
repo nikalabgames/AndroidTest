@@ -33,6 +33,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install FFmpeg & Tor
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tor
+          # Запуск Tor
+          sudo service tor start
+          sleep 10 # Ожидание поднятия сети Tor
+
       - name: Setup yt-dlp
         uses: AnimMouse/setup-yt-dlp@v3
 
