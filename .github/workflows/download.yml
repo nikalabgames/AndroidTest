@@ -112,13 +112,14 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
-            --print "Title: %(title)s" \
+            --print-to-file title metadata.txt \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
-            "${{ github.event.inputs.video_url }}" > metadata.txt
+            "${{ github.event.inputs.video_url }}"
           
            # 3. Создаем файл метаданных
+           sed -i '1s/^/Title: /' metadata.txt
            echo "Resolution: ${{ github.event.inputs.resolution }}p" >> metadata.txt
            echo "URL: ${{ github.event.inputs.video_url }}" >> metadata.txt
 
