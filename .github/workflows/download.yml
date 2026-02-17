@@ -1,55 +1,105 @@
-name: YouTube Downloader
+name: YouTube Downloader Windows
 on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Ссылка на видео'
+        description: 'YouTube URL'
         required: true
+        default: 'https://www.youtube.com/watch?v=kKgt_azwT0M'
       resolution:
-        description: 'Разрешение'
+        description: 'Resolution'
         required: true
         type: choice
-        default: '1080'
+        default: '720'
         options: ['720', '1080', '1440']
       trim_enabled:
-        description: 'Обрезать видео?'
+        description: 'Enable Trim?'
         type: boolean
-        default: false
+        default: true
       start_time:
-        description: 'Начало (00:00:00)'
+        description: 'Start (00:00:00)'
         default: '00:00:00'
       end_time:
-        description: 'Конец (00:00:10)'
+        description: 'End (00:00:10)'
         default: '00:00:10'
+      manual_cookies:
+        description: 'Paste Netscape Cookies here'
+        required: false
 
 jobs:
   download:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - uses: [actions/checkout](https://github.com)@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
       - name: Setup yt-dlp
-        uses: [AnimMouse/setup-yt-dlp](https://github.com)@v3
+        uses: AnimMouse/setup-yt-dlp@v3
         with:
-          with-ffmpeg: true
+          ffmpeg: true
+
+      - name: Process and Validate Cookies
+        shell: bash
+        env:
+          RAW_COOKIES: ${{ github.event.inputs.manual_cookies }}
+        run: |
+          if [[ -n "$RAW_COOKIES" ]]; then
+            # 'tr -d' removes Windows carriage returns that break the cookie file
+            echo "$RAW_COOKIES" | tr -d '\r' > cookies.txt
+            
+            if grep -q "Netscape" cookies.txt && grep -q "youtube.com" cookies.txt; then
+              echo "✅ Cookie file is valid Netscape format."
+              echo "USE_COOKIES=true" >> $GITHUB_ENV
+            else
+              echo "❌ ERROR: Invalid cookie format."
+              exit 1
+            fi
+          else
+            echo "⚠️ No cookies provided."
+            echo "USE_COOKIES=false" >> $GITHUB_ENV
+          fi
+
+      - name: Install & Start Cloudflare WARP
+        shell: powershell
+        run: |
+          # Установка через winget (доступно на windows-latest)
+          winget install --id Cloudflare.Warp --silent --accept-package-agreements --accept-source-agreements
+          # Запуск сервиса (может занять время)
+          Start-Process "C:\Program Files\Cloudflare\Cloudflare WARP\warp-svc.exe"
+          Start-Sleep -s 10
+          & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos registration new
+          & "C:\Program Files\Cloudflare\Cloudflare WARP\warp-cli.exe" --accept-tos connect
 
       - name: Run Download
+        shell: bash
         run: |
-          TRIM=""
+          COOKIE_ARG=""
+          if [[ "$USE_COOKIES" == "true" ]]; then
+            COOKIE_ARG="--cookies cookies.txt"
+          fi
+
+          TRIM_ARG=""
           if [[ "${{ github.event.inputs.trim_enabled }}" == "true" ]]; then
-            TRIM="--download-sections '*${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}'"
+            TRIM_ARG="--download-sections *${{ github.event.inputs.start_time }}-${{ github.event.inputs.end_time }}"
           fi
           
+          # Запуск скачивания через интерфейс WARP (локальный прокси 127.0.0.1:40000 или прямой туннель)
+          # Если WARP в режиме 'connect', он перехватывает весь трафик системы автоматически
           yt-dlp \
+            $COOKIE_ARG \
+            $TRIM_ARG \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" \
+            --extractor-args "youtube:player_client=ios,android;player_skip=webpage,configs" \
+            --no-cache-dir \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best" \
-            $TRIM \
             --merge-output-format mp4 \
-            -o "video.%(ext)s" \
+            -o "video.mp4" \
             "${{ github.event.inputs.video_url }}"
 
       - name: Upload
-        uses: [actions/upload-artifact](https://github.com)@v4
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: youtube-video-${{ github.event.inputs.resolution }}p
+          name: youtube-video
           path: video.mp4
           retention-days: 1
