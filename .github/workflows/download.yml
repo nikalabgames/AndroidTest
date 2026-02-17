@@ -22,6 +22,10 @@ on:
       end_time:
         description: 'End (00:00:10)'
         default: '00:00:10'
+      hls_max_mb:
+        description: 'Max HLS segment size (MB)'
+        required: true
+        default: '50'
       manual_cookies:
         description: 'Paste Netscape Cookies here'
         required: false
@@ -116,12 +120,26 @@ jobs:
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}]+bestaudio/best[height<=1440]" \
             --merge-output-format mp4 \
             -o "video.mp4" \
-            "${{ github.event.inputs.video_url }}"
+            "${{ github.event.inputs.video_url }}"           
 
-           ls -1
-          
-           # 3. Создаем файл метаданных
-           cat metadata.json
+           # Конвертируем MB в байты для ffmpeg
+          MAX_BYTES=$(( ${{ github.event.inputs.hls_max_mb }} * 1024 * 1024 ))
+
+          # Используем -c copy для сохранения оригинального качества и битрейта
+          ffmpeg -i video.mp4 \
+            -c copy \
+            -map 0 \
+            -start_number 0 \
+            -hls_time 30 \
+            -hls_list_size 0 \
+            -hls_segment_size $MAX_BYTES \
+            -hls_segment_type mpegts \
+            -hls_segment_filename "output/seg_%03d.ts" \
+            -f hls output/playlist.m3u8
+
+          echo ">>> DIRECTORY CONTENT <<<"
+          ls -1R
+          cat metadata.json
 
       - name: Upload Artifacts
         if: always()
