@@ -47,18 +47,20 @@ jobs:
             echo "USE_COOKIES=false" >> $GITHUB_ENV
           fi
 
-      - name: Install & Start Cloudflare WARP
-        # На Ubuntu установка WARP отличается от Windows
+      - name: Install Cloudflare WARP
         run: |
+          # Добавляем репозиторий Cloudflare правильно
           curl -fsSL https://pkg.cloudflareclient.com | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
           sudo apt-get update && sudo apt-get install -y cloudflare-warp
-          # Регистрация и подключение
+          
+          # Запуск и настройка
           warp-cli --accept-tos registration new
           warp-cli --accept-tos mode proxy
           warp-cli --accept-tos connect
-          sleep 5
-          echo "✅ WARP Connected"
+          sleep 10
+          # Проверка IP (должен быть от Cloudflare)
+          curl -s https://www.cloudflare.com | grep ip
 
       - name: Check Available Formats
         run: |
