@@ -134,6 +134,9 @@ jobs:
             echo ">>> STARTING HLS SPLIT (fMP4 for AV1 Support) <<<"
             # 1. Создаем папку (явно)
             mkdir -p output
+
+          ffprobe
+          echo "sdfdfsdfsd"
             
             # 1. Получаем битрейт видео через ffprobe
             # В некоторых MP4 битрейт может быть не в streams, а в format (bit_rate)
