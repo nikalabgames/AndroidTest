@@ -1,0 +1,44 @@
+name: Slice Video to HLS (Fixed Size)
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct link to MP4'
+        required: true
+      result_name:
+        description: 'Artifact Name'
+        required: true
+        default: 'hls-18mb-segments'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download Video
+        run: curl -L "${{ github.event.inputs.video_url }}" -o input.mp4
+
+      - name: Slice Video
+        run: |
+          mkdir output
+          # Устанавливаем битрейт 4M (4000k), чтобы сегмент 30 сек весил ~15МБ.
+          # -hls_time 30 задает примерную длину сегмента.
+          # -maxrate и -bufsize гарантируют, что битрейт не "прыгнет" выше лимита.
+          ffmpeg -i input.mp4 \
+            -c:v libx264 -b:v 4000k -maxrate 4000k -bufsize 8000k \
+            -profile:v baseline -level 3.0 -c:a aac -b:a 128k \
+            -start_number 0 -hls_time 30 -hls_list_size 0 \
+            -hls_segment_type mpegts \
+            -f hls output/playlist.m3u8
+
+      - name: Check Segment Sizes
+        run: ls -lh output/
+
+      - name: Upload HLS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.result_name }}
+          path: output/
+          retention-days: 1
