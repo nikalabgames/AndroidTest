@@ -156,4 +156,5 @@ jobs:
             video.mp4
             video.jpg
             metadata.json
+            output/
           retention-days: 1
