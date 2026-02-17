@@ -101,6 +101,7 @@ jobs:
           # Мы используем клиент 'tv', так как он чаще всего отдает HD без PO Token.
           # Селектор "bestvideo[height<=?1440]+bestaudio/best" наиболее универсален.
           yt-dlp \
+            --username oauth2 \
             $COOKIE_ARG \
             $TRIM_ARG \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
