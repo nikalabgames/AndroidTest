@@ -112,6 +112,7 @@ jobs:
             --fixup force \
             --write-thumbnail \
             --convert-thumbnails jpg \
+            --no-combo-formats \
             --print-to-file "%(vcodec)s" "{\"title\": \"%(title)s\", \"resolution\": \"${{ github.event.inputs.resolution }}p\", \"url\": \"%(webpage_url)s\", \"id\": \"%(id)s\", \"format_note\": \"%(format_note)s\"}" metadata.json \
             -f "bestvideo[height<=${{ github.event.inputs.resolution }}],worstaudio" \
             -o "video:videopart.%(ext)s" \
