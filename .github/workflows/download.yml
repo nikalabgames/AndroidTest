@@ -43,9 +43,6 @@ jobs:
       
       - name: Setup FFmpeg & FFprobe
         uses: AnimMouse/setup-ffmpeg@v1
-        with:
-          # This ensures ffprobe is added to the system PATH
-          register-path: true 
 
       - name: Setup yt-dlp
         uses: AnimMouse/setup-yt-dlp@v3
