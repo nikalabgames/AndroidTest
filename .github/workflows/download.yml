@@ -180,12 +180,46 @@ jobs:
             ffmpeg -i video.mp4 \
               -c copy \
               -map 0 \
-              -start_number 0 \
+              -start_number 100 \
               -hls_list_size 0 \
               -hls_time $HLS_TIME \
               -hls_segment_type fmp4 \
-              -hls_segment_filename "output/seg_%03d.m4s" \
+              -hls_fmp4_init_filename "data_000" \
+              -hls_segment_filename "output/data_%03x" \
               -f hls output/playlist.m3u8
+
+            #!/bin/bash
+
+            # Настройки
+            VIDEO_ID="lesson_1"
+            REPO_PATH="user/repo@main/folder"
+            START_NUM=100
+            INPUT_FILE="output/playlist.m3u8"
+            OUTPUT_FILE="assets.json"
+            
+            # 1. Извлекаем все длительности после #EXTINF: и превращаем их в список через запятую
+            # Мы ищем числа вида 10.034211
+            DURATIONS=$(grep "#EXTINF:" "$INPUT_FILE" | sed 's/#EXTINF:\([^,]*\),/\1/' | tr '\n' ',' | sed 's/,$//')
+            
+            # 2. Формируем итоговый JSON
+            # Используем heredoc для создания структуры
+            cat <<EOF > "$OUTPUT_FILE"
+            {
+              "v_list": [
+                {
+                  "id": "$VIDEO_ID",
+                  "t": "Название видео",
+                  "p": "$REPO_PATH",
+                  "start_num": $START_NUM,
+                  "segments": [$DURATIONS]
+                }
+              ]
+            }
+            EOF
+
+            echo "✅ JSON готов: $OUTPUT_FILE"
+            echo "Количество сегментов: $(grep -c "#EXTINF:" "$INPUT_FILE")"
+
 
             echo ">>> DIRECTORY CONTENT <<<"
             ls -1R
@@ -204,5 +238,6 @@ jobs:
             video.mp4
             video.jpg
             metadata.json
+            assets.json
             output/
           retention-days: 1
