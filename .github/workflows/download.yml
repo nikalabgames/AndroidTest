@@ -180,12 +180,12 @@ jobs:
             ffmpeg -i video.mp4 \
               -c copy \
               -map 0 \
-              -start_number 100 \
+              -start_number 1 \
               -hls_list_size 0 \
               -hls_time $HLS_TIME \
               -hls_segment_type fmp4 \
               -hls_fmp4_init_filename "data_000" \
-              -hls_segment_filename "output/data_%03x" \
+              -hls_segment_filename "output/data_%03d" \
               -f hls output/playlist.m3u8
 
             # Настройки
