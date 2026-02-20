@@ -187,7 +187,7 @@ jobs:
               echo -n "$AES_KEY" > output/enc.key
               # Create the key info file (1st line: URI, 2nd line: Path)
               echo "enc.key" > key_info.txt
-              echo "enc.key" >> key_info.txt
+              echo "output/enc.key" >> key_info.txt
               ENC_FLAGS="-hls_key_info_file key_info.txt"
             fi
 
