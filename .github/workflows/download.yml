@@ -30,6 +30,10 @@ on:
         description: 'Max HLS segment size (MB)'
         required: true
         default: '15'
+      aes_key:
+        description: 'AES Encryption Key (leave empty to skip)'
+        required: false
+        default: ''
       manual_cookies:
         description: 'Paste Netscape Cookies here'
         required: false
@@ -98,6 +102,8 @@ jobs:
 
       - name: Run Download
         shell: bash
+        env:
+          AES_KEY: ${{ github.event.inputs.aes_key }}
         run: |
           COOKIE_ARG=""
           if [[ "$USE_COOKIES" == "true" ]]; then
@@ -172,6 +178,19 @@ jobs:
               echo "✅ Рассчитанное время: $HLS_TIME сек (для лимита $LIMIT_MB MB)"
             fi
 
+            # Initialize encryption flags as empty
+            ENC_FLAGS=""
+        
+            if [ -n "$AES_KEY" ]; then
+              echo "Key found, configuring encryption..."
+              # Create the actual key file
+              echo -n "$AES_KEY" > output/enc.key
+              # Create the key info file (1st line: URI, 2nd line: Path)
+              echo "enc.key" > key_info.txt
+              echo "enc.key" >> key_info.txt
+              ENC_FLAGS="-hls_key_info_file key_info.txt"
+            fi
+
             # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
             # Используем -c copy для сохранения оригинального качества и битрейта
             ffmpeg -i video.mp4 \
@@ -183,6 +202,7 @@ jobs:
               -hls_segment_type fmp4 \
               -hls_fmp4_init_filename "data_000" \
               -hls_segment_filename "output/data_%03d" \
+              $ENC_FLAGS \
               -f hls output/playlist.m3u8
 
             # Настройки
