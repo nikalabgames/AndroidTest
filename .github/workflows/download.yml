@@ -191,7 +191,8 @@ jobs:
               ENC_FLAGS="-hls_key_info_file key_info.txt"
             fi
 
-            LIMIT_MB=${{ github.event.inputs.hls_max_mb }} * 1024 * 1024
+            INPUT_MB=${{ github.event.inputs.hls_max_mb || 5 }}
+            MAX_SIZE=$(( INPUT_MB * 1024 * 1024 ))
             # 3. Запускаем FFmpeg с поддержкой AV1 (fmp4) и исправленными путями
             # Используем -c copy для сохранения оригинального качества и битрейта
             ffmpeg -i video.mp4 \
